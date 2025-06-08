@@ -1,0 +1,43 @@
+name: Handle GitHub OAuth
+
+on:
+  workflow_dispatch:
+    inputs:
+      code:
+        required: true
+        type: string
+
+jobs:
+  handle-auth:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get Access Token
+        run: |
+          token=$(curl -s -X POST https://github.com/login/oauth/access_token \
+            -H "Accept: application/json" \
+            -d "client_id=${{ secrets.OAUTH_CLIENT_ID }}" \
+            -d "client_secret=${{ secrets.OAUTH_CLIENT_SECRET }}" \
+            -d "code=${{ github.event.inputs.code }}" \
+          | jq -r '.access_token')
+
+          echo "token=$token" >> $GITHUB_ENV
+
+      - name: Get GitHub User
+        run: |
+          user=$(curl -s -H "Authorization: token $token" https://api.github.com/user)
+          login=$(echo "$user" | jq -r '.login')
+          echo "Login: $login"
+
+          hash=$(echo -n "$login" | sha256sum | cut -d ' ' -f1)
+
+          echo "{\"user\":\"$login\",\"hash\":\"$hash\"}" > user.json
+
+      - name: Commit user data
+        run: |
+          git config --global user.name github-actions
+          git config --global user.email github-actions@github.com
+          git pull
+          mv user.json users.json
+          git add users.json
+          git commit -m "Add user auth info"
+          git push
