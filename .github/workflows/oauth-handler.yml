@@ -1,48 +1,64 @@
-name: Handle GitHub OAuth
+name: Handle GitHub OAuth login
 
 on:
   workflow_dispatch:
     inputs:
       code:
         required: true
-        type: string
+        description: GitHub OAuth temporary code
 
 jobs:
-  handle-auth:
+  process-login:
     runs-on: ubuntu-latest
     steps:
-
       - name: Checkout repo
         uses: actions/checkout@v3
 
+      - name: Install tools
+        run: sudo apt-get update && sudo apt-get install -y jq
 
-      - name: Get Access Token
+      - name: Exchange code for token
+        id: exchange
         run: |
-          token=$(curl -s -X POST https://github.com/login/oauth/access_token \
+          response=$(curl -s -X POST https://github.com/login/oauth/access_token \
             -H "Accept: application/json" \
-            -d "client_id=${{ secrets.OAUTH_CLIENT_ID }}" \
-            -d "client_secret=${{ secrets.OAUTH_CLIENT_SECRET }}" \
-            -d "code=${{ github.event.inputs.code }}" \
-          | jq -r '.access_token')
+            -d "client_id=${{ secrets.CLIENT_ID }}" \
+            -d "client_secret=${{ secrets.CLIENT_SECRET }}" \
+            -d "code=${{ github.event.inputs.code }}")
+
+          echo "Full response: $response"
+          token=$(echo "$response" | jq -r .access_token)
+
+          if [[ -z "$token" || "$token" == "null" ]]; then
+            echo "❌ Invalid or missing token"
+            exit 1
+          fi
 
           echo "token=$token" >> $GITHUB_ENV
 
-      - name: Get GitHub User
+      - name: Get GitHub user info
+        id: user
         run: |
-          user=$(curl -s -H "Authorization: token $token" https://api.github.com/user)
-          login=$(echo "$user" | jq -r '.login')
-          echo "Login: $login"
+          user=$(curl -s -H "Authorization: token $TOKEN" https://api.github.com/user)
+          login=$(echo "$user" | jq -r .login)
 
-          hash=$(echo -n "$login" | sha256sum | cut -d ' ' -f1)
+          if [[ -z "$login" || "$login" == "null" ]]; then
+            echo "❌ Failed to fetch GitHub user"
+            exit 1
+          fi
 
-          echo "{\"user\":\"$login\",\"hash\":\"$hash\"}" > user.json
+          echo "GitHub login: $login"
+          echo "login=$login" >> $GITHUB_ENV
+          echo "$user" > user.json
 
-      - name: Commit user data
+      - name: Generate login hash
         run: |
-          git config --global user.name github-actions
-          git config --global user.email github-actions@github.com
-          git pull
-          mv user.json users.json
-          git add users.json
-          git commit -m "Add user auth info"
-          git push
+          hash=$(echo -n "${TOKEN}${login}" | sha256sum | cut -d ' ' -f1)
+          echo "user=${login}, hash=${hash}"
+          echo "{\"user\":\"${login}\",\"hash\":\"${hash}\"}" > auth-result.json
+
+      - name: Save auth result (commit or artifact)
+        run: |
+          cat auth-result.json
+          # Aqui você pode salvar o hash como artifact ou commitar
+          # echo "$(cat auth-result.json)" > data/${login}.json
