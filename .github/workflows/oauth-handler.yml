@@ -11,6 +11,11 @@ jobs:
   handle-auth:
     runs-on: ubuntu-latest
     steps:
+
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+
       - name: Get Access Token
         run: |
           token=$(curl -s -X POST https://github.com/login/oauth/access_token \
