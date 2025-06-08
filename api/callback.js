@@ -1,20 +1,8 @@
-import { v4 as uuidv4 } from 'uuid';
-
-const sessions = new Map();
+import { gerarToken } from './_jwt.js';
 
 export default async function handler(req, res) {
-  // CORS headers (para qualquer fetch direto do front)
-  res.setHeader('Access-Control-Allow-Origin', 'https://zaorinu-utils.github.io');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
-
-  if (req.method === 'OPTIONS') {
-    res.status(200).end();
-    return;
-  }
-
   const code = req.query.code;
-  if (!code) return res.status(400).send('Missing code');
+  if (!code) return res.status(400).send('Código ausente');
 
   try {
     const tokenRes = await fetch('https://github.com/login/oauth/access_token', {
@@ -33,23 +21,19 @@ export default async function handler(req, res) {
     const userRes = await fetch('https://api.github.com/user', {
       headers: { Authorization: `Bearer ${access_token}` },
     });
+
     const userData = await userRes.json();
     const username = userData.login;
 
-    const sessionToken = uuidv4();
-    const expires = Date.now() + 1000 * 60 * 60;
-
-    sessions.set(sessionToken, { username, expires });
+    const jwt = gerarToken(username);
 
     res.writeHead(302, {
-      Location: `https://zaorinu-utils.github.io/login-front/?token=${sessionToken}`,
+      Location: `https://zaorinu-utils.github.io/login-front/?token=${jwt}`,
     });
     res.end();
 
-  } catch (error) {
-    console.error(error);
+  } catch (err) {
+    console.error(err);
     res.status(500).json({ error: 'Erro interno' });
   }
 }
-
-export { sessions };
