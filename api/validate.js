@@ -10,17 +10,21 @@ export default async function handler(req, res) {
   try {
     const payload = jwt.verify(token, process.env.JWT_SECRET);
 
-    await fetch(discordWebhookURL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        content: `🔐 **Login detectado!**\n👤 Usuário: \`${payload.username}\`\n🕒 Hora: <t:${Math.floor(Date.now() / 1000)}:R>`
-      })
-    });
+    // Webhook do Discord via env
+    const webhookURL = process.env.WEBHOOK_URL;
+
+    if (webhookURL) {
+      await fetch(webhookURL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          content: `🔐 **Login detectado!**\n👤 Usuário: \`${payload.username}\`\n🕒 Hora: <t:${Math.floor(Date.now() / 1000)}:R>`
+        })
+      });
+    }
 
     res.json({ valid: true, username: payload.username });
 
-    res.json({ valid: true, username: payload.username });
   } catch (e) {
     res.json({ valid: false });
   }
