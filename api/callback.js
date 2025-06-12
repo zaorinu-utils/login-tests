@@ -2,6 +2,9 @@ import jwt from 'jsonwebtoken';
 import { gerarToken } from './_jwt.js';
 
 export default async function handler(req, res) {
+  res.setHeader('Access-Control-Allow-Origin', 'https://zaorinu-utils.github.io');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   const { code, state } = req.query;
 
   if (!code || !state) return res.status(400).json({ error: 'Invalid request' });
