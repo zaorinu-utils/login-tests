@@ -1,6 +1,21 @@
 import { gerarToken } from './_jwt.js';
 
 export default async function handler(req, res) {
+  // Permite que o cliente leia o cabeçalho customizado
+  res.setHeader('Access-Control-Expose-Headers', 'X-RateLimit-Remaining');
+
+  // O cliente pode enviar o número de tentativas já feitas
+  const tentativas = Number(req.headers['x-login-attempts'] || 0);
+  const LIMITE = 5;
+
+  // Calcula tentativas restantes
+  const restantes = LIMITE - tentativas;
+  res.setHeader('X-RateLimit-Remaining', Math.max(restantes, 0));
+
+  if (tentativas >= LIMITE) {
+    return res.status(429).json({ error: 'Limite de tentativas atingido' });
+  }
+
   const code = req.query.code;
   if (!code) return res.status(400).send('Código ausente');
 
@@ -29,6 +44,7 @@ export default async function handler(req, res) {
 
     res.writeHead(302, {
       Location: `https://zaorinu-utils.github.io/login-front/?token=${jwt}`,
+      'X-RateLimit-Remaining': Math.max(restantes, 0),
     });
     res.end();
 

@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
 
-const SECRET = process.env.JWT_SECRET || 'minha_chave_supersecreta';
+const SECRET = process.env.JWT_SECRET || 'default_key';
 
 export function gerarToken(username) {
   return jwt.sign({ username }, SECRET, { expiresIn: '1h' });
