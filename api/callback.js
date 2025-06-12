@@ -5,7 +5,7 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
 
   const code = req.query.code;
-  if (!code) return res.status(400).json({ error: 'Missing Authentication' });
+  if (!code) return res.status(204).end();
 
   try {
     // Exchange code for GitHub access token

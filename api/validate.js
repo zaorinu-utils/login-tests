@@ -6,7 +6,7 @@ export default function handler(req, res) {
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
   if (req.method === 'GET') {
-    // Dont respond to GET requests
+    return res.status(204).end();
     return;
   }
 
