@@ -3,6 +3,9 @@ import { gerarToken } from './_jwt.js';
 export default async function handler(req, res) {
   // Permite que o cliente leia o cabeçalho customizado
   res.setHeader('Access-Control-Expose-Headers', 'X-RateLimit-Remaining');
+  res.setHeader('Access-Control-Allow-Origin', 'https://zaorinu-utils.github.io');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Expose-Headers', 'X-RateLimit-Remaining');
 
   // O cliente pode enviar o número de tentativas já feitas
   const tentativas = Number(req.headers['x-login-attempts'] || 0);
