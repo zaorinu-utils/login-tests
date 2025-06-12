@@ -8,7 +8,7 @@ export default async function handler(req, res) {
   if (!code) return res.status(204).end();
 
   try {
-    // Exchange code for GitHub access token
+    // 1. Troca o code pelo access token do GitHub
     const tokenRes = await fetch('https://github.com/login/oauth/access_token', {
       method: 'POST',
       headers: { Accept: 'application/json' },
@@ -22,7 +22,7 @@ export default async function handler(req, res) {
     const { access_token } = await tokenRes.json();
     if (!access_token) return res.status(401).json({ error: 'Invalid Authentication' });
 
-    // Get GitHub user info
+    // 2. Busca dados do usuário no GitHub
     const userRes = await fetch('https://api.github.com/user', {
       headers: { Authorization: `Bearer ${access_token}` },
     });
@@ -30,10 +30,15 @@ export default async function handler(req, res) {
     const userData = await userRes.json();
     const username = userData.login;
 
-    // Generate JWT with username
-    const jwt = gerarToken(username);
+    // 3. Busca IP público do usuário
+    const ipRes = await fetch('https://api.ipify.org?format=json');
+    const ipData = await ipRes.json();
+    const userIp = ipData.ip;
 
-    // Redirect back to frontend with token as query param
+    // 4. Gera token incluindo username e IP
+    const jwt = gerarToken({ username, ip: userIp });
+
+    // 5. Redireciona para frontend com token no query param
     res.writeHead(302, {
       Location: `https://zaorinu-utils.github.io/login-front/?token=${jwt}`,
     });
