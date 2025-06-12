@@ -12,7 +12,7 @@ export default async function handler(req, res) {
   try {
     jwt.verify(state, process.env.JWT_SECRET);
   } catch (err) {
-    return res.status(403).json({ error: 'Your link expired!' });
+    return res.status(403).json({ error: 'Your link expired! Try to login again.' });
   }
 
   try {

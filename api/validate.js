@@ -7,7 +7,6 @@ export default function handler(req, res) {
 
   if (req.method === 'GET') {
     return res.status(204).end();
-    return;
   }
 
   if (req.method === 'OPTIONS') {

@@ -8,6 +8,6 @@ export default function handler(req, res) {
     createdAt: Date.now()
   };
 
-  const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '20s' });
+  const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '30s' });
   res.status(200).json({ state: token });
 }
