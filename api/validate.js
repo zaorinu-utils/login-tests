@@ -3,7 +3,12 @@ import jwt from 'jsonwebtoken';
 export default function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', 'https://zaorinu-utils.github.io');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-login-attempts');
   res.setHeader('Access-Control-Expose-Headers', 'X-RateLimit-Remaining');
+
+  if (req.method === 'OPTIONS') {
+    return res.status(204).end();
+  }
 
   // O cliente pode enviar o número de tentativas já feitas
   const tentativas = Number(req.headers['x-login-attempts'] || 0);
