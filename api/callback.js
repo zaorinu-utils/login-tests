@@ -6,10 +6,10 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
-  const allowedReferer = 'https://github.com/login/oauth/select_account';
   const referer = req.headers.referer || '';
-
-  if (!referer.startsWith(allowedReferer)) {
+  const allowedPrefix = 'https://github.com/';
+  
+  if (!referer.startsWith(allowedPrefix)) {
     return res.status(403).json({ error: 'Invalid Referer' });
   }
 
