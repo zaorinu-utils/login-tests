@@ -7,7 +7,7 @@ export default function handler(req, res) {
 
   const referer = req.headers.referer || '';
   if (!referer.startsWith('https://zaorinu-utils.github.io')) {
-    return res.status(403).json({ error: 'Referer inválido' });
+    return res.status(204).end();
   }
 
   if (req.method === 'OPTIONS') {
