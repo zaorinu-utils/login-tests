@@ -5,9 +5,19 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', 'https://zaorinu-utils.github.io');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+
+  const allowedReferer = 'https://github.com/login/oauth/select_account';
+  const referer = req.headers.referer || '';
+
+  if (!referer.startsWith(allowedReferer)) {
+    return res.status(403).json({ error: 'Invalid Referer' });
+  }
+
   const { code, state } = req.query;
 
-  if (!code || !state) return res.status(400).json({ error: 'Invalid request' });
+  if (!code || !state) {
+    return res.status(400).json({ error: 'Invalid request' });
+  }
 
   try {
     jwt.verify(state, process.env.JWT_SECRET);
@@ -27,7 +37,9 @@ export default async function handler(req, res) {
     });
 
     const { access_token } = await tokenRes.json();
-    if (!access_token) return res.status(401).json({ error: 'Invalid Authentication' });
+    if (!access_token) {
+      return res.status(401).json({ error: 'Invalid Authentication' });
+    }
 
     const userRes = await fetch('https://api.github.com/user', {
       headers: { Authorization: `Bearer ${access_token}` },
