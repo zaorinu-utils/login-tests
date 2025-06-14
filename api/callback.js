@@ -10,7 +10,7 @@ export default async function handler(req, res) {
   const allowedPrefix = 'https://github.com/';
   
   if (!referer.startsWith(allowedPrefix)) {
-    return res.status(403).json({ error: 'Invalid Referer' });
+    return res.status(204).end();
   }
 
   const { code, state } = req.query;
