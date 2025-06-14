@@ -5,9 +5,20 @@ export default function handler(req, res) {
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
+  const allowedReferer = "https://github.com/login/oauth/select_account?client_id=Ov23liDydrs0YSmOnO9m&redirect_uri=https%3A%2F%2Flogin-tests-six.vercel.app%2Fapi%2Fcallback";
+
   if (req.method === 'GET') {
-    return res.status(204).end();
+    const referer = req.headers.referer || '';
+
+    if (!referer.startsWith(allowedReferer)) {
+      return res.status(204).end();  // Bloqueia se o Referer for outro
+    }
+
+    // Se o referer for válido, segue o código desejado:
+    return res.status(200).json({ status: "OK" });
   }
+
+  return res.status(405).end(); // Método não permitido
 
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
